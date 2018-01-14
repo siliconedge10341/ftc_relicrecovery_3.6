@@ -127,18 +127,17 @@ public class RedAuto2 extends LinearOpMode {
         //Servo
         jewelHitter = hardwareMap.servo.get("servo_hitter");
         jewelHitter.setPosition(0);
-
         jewelHitter2 = hardwareMap.servo.get("servo_hitter2");
 
         //Timer
         timer = new ElapsedTime();
-
         driveDistance = 15.0;
 
         waitForStart();
 
 //////////////////////////////////////////////////////////////////////////play!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         imu.start();
+        relicTrackables.activate();
 
         jewelHitter2.setPosition(0.0);
         pauseAuto(1.0);
@@ -148,24 +147,10 @@ public class RedAuto2 extends LinearOpMode {
         pauseAuto(2.0);
 
         //STATE THREE: SCAN VUMARK
-        encoderDrive(28.0,"forward" , .3);
-        RelicRecoveryVuMark vuMark = RelicRecoveryVuMark.from(relicTemplate);
-        telemetry.addData("VuMark", "%s visible", vuMark);
+        driveDistance = encoderDriveScan(28.0,"forward_scan" , .3 , relicTemplate);
 
-        telemetry.update();
         pauseAuto(1.0);
 
-        relicTrackables.activate();
-        if (vuMark == RelicRecoveryVuMark.LEFT){
-            driveDistance = 24.0;
-        }else if (vuMark == RelicRecoveryVuMark.CENTER){
-            driveDistance = 16.0;
-        }else if (vuMark == RelicRecoveryVuMark.RIGHT){
-            driveDistance = 13.0;
-        }else{
-            driveDistance = 23.0;
-        }
-        pauseAuto(1.0);
         //STATE FIVE: MOVE BACK
         gyroTurnLeft(89,"oof" , .27);
         pauseAuto(1.0);
@@ -224,9 +209,6 @@ public class RedAuto2 extends LinearOpMode {
         while (bot.testDistance(motorFL) != 1 && opModeIsActive()) {
             telemetry.addData("Pos ", motorFL.getCurrentPosition());
             telemetry.update();
-            if(direction =="forward_scan"){
-
-            }
         }
 
         bot.brake();
@@ -234,7 +216,57 @@ public class RedAuto2 extends LinearOpMode {
 
     }
 
+    public double encoderDriveScan(double inches, String direction , double power , VuforiaTrackable relicTemplate) {
+        int encoderval;
+        //
+        // Sets the encoders
+        //
+        bot.reset_encoders();
+        encoderval = ticks_per_inch.intValue() * (int) inches;
 
+        //
+        // Uses the encoders and motors to set the specific position
+        //
+        bot.setPosition(encoderval,encoderval,encoderval,encoderval);
+        bot.run_using_encoders();
+        //
+        // Sets the power and direction
+        //
+        bot.setPowerD(power);
+        if (direction == "forward"){
+            bot.run_forward();
+        } else if(direction == "backward"){
+            bot.run_backward();
+        } else if (direction == "left"){
+            bot.run_left();
+        } else if (direction == "right"){
+            bot.run_right();
+        } else if (direction == "diagonal_left_up"){
+            bot.run_diagonal_left_up();
+        }
+        driveDistance = 0.0;
+
+        while (bot.testDistance(motorFL) != 1 && opModeIsActive()) {
+            RelicRecoveryVuMark vuMark = RelicRecoveryVuMark.from(relicTemplate);
+            telemetry.addData("VuMark", "%s visible", vuMark);
+            telemetry.update();
+
+            if (vuMark == RelicRecoveryVuMark.LEFT){
+                driveDistance = 24.0;
+            }else if (vuMark == RelicRecoveryVuMark.CENTER){
+                driveDistance = 16.0;
+            }else if (vuMark == RelicRecoveryVuMark.RIGHT){
+                driveDistance = 13.0;
+            }
+        }
+
+        if(driveDistance == 0.0){
+            driveDistance = driveDistance = 23.0;
+        }
+
+        bot.brake();
+        return driveDistance;
+    }
 
     public void gyroTurnRight(double angle, String direction, double power){
         double aheading = imu.getHeading() - angle;

@@ -14,7 +14,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.classes.AdafruitIMU;
 
 
-@TeleOp(name = "MecanumDrive", group = "Drive")
+@TeleOp(name = "MecanumDriveGood", group = "Drive")
 public class driver extends OpMode{
     // instance variables
     // private variables
@@ -26,20 +26,31 @@ public class driver extends OpMode{
     private DcMotor motorBL;
 
     private DcMotor motorVertical1;
-    private DcMotor motorVertical2;
 
     private DcMotor motorHorizontal;
 
+    private Servo armServoLB;
+    private Servo armServoLT;
+    private Servo armServoRB;
+    private Servo armServoRT;
+    private Servo relicservohook;
+    private Servo relicservoarm;
 
-    private Servo armServoL1;
-    private Servo armServoL2;
-    private Servo armServoR1;
-    private Servo armServoR2;
+    //increasing servo value -> clockwise
 
-    double ServoposL = 1;
-    double ServoposL1 = 1;
-    double ServoposR = .7;
-    double ServoposR1 = .7;
+    double openposLB = .1;
+    double openposLT = .1;
+    double openposRB = .9;
+    double openposRT = .9;
+    double openrelichook = .9;
+    double downrelicarm = .9;
+
+    double closeposLB = 0.65;
+    double closeposLT = 0.9;
+    double closeposRB = 0.35;
+    double closeposRT = .1;
+    double closerelichook = .2;
+    double uprelicarm = .4;
 
     //AdafruitIMU imu;
 
@@ -47,16 +58,12 @@ public class driver extends OpMode{
     double Ch3;
     double Ch4 ;
     double accel;
-    double speedv = 2;
     int endtime = 0;
     boolean pressed;
 
     double speedcoef;
 
-    double closeposL1 = 0.29;
-    double closeposR1 = 0.28;
-    double closeposL2 = 0.79;
-    double closeposR2 = 0.22;
+
 
     // Servos
 
@@ -78,38 +85,36 @@ public class driver extends OpMode{
         motorBR = hardwareMap.dcMotor.get("br");
 
 
-
         motorVertical1 = hardwareMap.dcMotor.get("motor_vertical1");
         motorVertical1.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        motorVertical2 = hardwareMap.dcMotor.get("motor_vertical2");
-        motorVertical2.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
         motorHorizontal = hardwareMap.dcMotor.get("motor_horizontal");
 
-        armServoL1 = hardwareMap.servo.get("arm_servoL1");
-        armServoL1.setPosition(closeposL1);
+        armServoLB = hardwareMap.servo.get("arm_servoLB");
+        armServoLB.setPosition(openposLB);
 
-        armServoL2 = hardwareMap.servo.get("arm_servoL2");
-        armServoL2.setPosition(closeposL2);
+        armServoLT = hardwareMap.servo.get("arm_servoLT");
+        armServoLT.setPosition(openposLT);
 
-        armServoR2 = hardwareMap.servo.get("arm_servoR2");
-        armServoR2.setPosition(closeposR1);
+        armServoRB = hardwareMap.servo.get("arm_servoRB");
+        armServoRB.setPosition(openposRB);
 
-        armServoR1 = hardwareMap.servo.get("arm_servoR1");
-        armServoR1.setPosition(closeposR2);
+        armServoRT = hardwareMap.servo.get("arm_servoRT");
+        armServoRT.setPosition(openposRT);
 
-        armServoL1.setPosition(.15);
-        armServoL2.setPosition(.4);
-        armServoR1.setPosition(.9);
-        armServoR2.setPosition(.15);
+        relicservohook = hardwareMap.servo.get("relic_servohook");
+        relicservohook.setPosition(openrelichook);
 
-       // imu = new AdafruitIMU(hardwareMap.get(BNO055IMU.class, "imu"));
-       // imu.init();
+        relicservoarm = hardwareMap.servo.get("relic_servoarm");
+        relicservoarm.setPosition(uprelicarm);
+
+
+        // imu = new AdafruitIMU(hardwareMap.get(BNO055IMU.class, "imu"));
+        // imu.init();
 
         pressed = false;
         endtime = 0;
-        speedcoef = .5;
+        speedcoef = .7;
 
         accel = 0;
 
@@ -126,70 +131,72 @@ public class driver extends OpMode{
         //accel = Math.sqrt(imu.getAccelX()*imu.getAccelX() + imu.getAccelZ()*imu.getAccelZ() + imu.getAccelY()*imu.getAccelY());
 
 
-        if (gamepad1.right_trigger>.5){
-            speedv = 2;                   //fast
+        if (gamepad1.left_trigger>.5){
+            speedcoef = 1.0;
+        }else if(gamepad1.right_trigger >.5){
+            speedcoef = .3;
         }
         else{
-            speedv = 1;
+            speedcoef = .7;
         }
 
-        Ch1 = gamepad1.right_stick_x;
+        //meccanum drive
+        Ch1 = -gamepad1.right_stick_x;
         Ch3 = gamepad1.left_stick_y;
         Ch4 = gamepad1.left_stick_x;
 
         motorFR.setPower( -speedcoef* -(Ch3 - Ch1 - Ch4));
         motorFL.setPower( -speedcoef * (Ch3 + Ch1 + Ch4));
 
-
         motorBR.setPower(-speedcoef * -(Ch3 - Ch1 + Ch4));
         motorBL.setPower(-speedcoef * (Ch3 + Ch1 - Ch4));
 
-        if(gamepad2.left_bumper){
-            armServoL1.setPosition(.15+.2);
-            armServoL2.setPosition(.4-.2);
-            armServoR2.setPosition(.9-.2);
-            armServoR1.setPosition(.15+.2);
-        }else if(gamepad2.right_bumper){
-            armServoL1.setPosition(.05);
-            armServoL2.setPosition(.45);    //actually r2
-            armServoR1.setPosition(.95);
-            armServoR2.setPosition(.05);;
-        }else if(gamepad2.right_trigger>.5){
-            armServoL1.setPosition(.15-.08);
-            armServoL2.setPosition(.4+.08);    //actually r2
-            armServoR1.setPosition(.9+.08);
-            armServoR2.setPosition(.15-.08);
+        //Glyph open/close
+        if(gamepad1.right_trigger>.5){ 		//Glyph Close
+            armServoLB.setPosition(closeposLB);
+            armServoLT.setPosition(closeposLT);
+            armServoRB.setPosition(closeposRB);
+            armServoRT.setPosition(closeposRT);
+        }else if(gamepad1.right_bumper){ 	//Glyph Open
+            armServoLB.setPosition(openposLB);
+            armServoLT.setPosition(openposLT);
+            armServoRB.setPosition(openposRB);
+            armServoRT.setPosition(openposRT);
         }
 
-
-        if (speedv == 1){
-            speedcoef = .6;
+        //relic open/close
+        if(gamepad2.right_trigger>.5){ 		//Relic Close
+            relicservohook.setPosition(closerelichook);
+        }else if(gamepad2.left_trigger>.5){ 		//Relic Open
+            relicservohook.setPosition(openrelichook);
         }
-        if (speedv == 2){
-            speedcoef = .5;
+
+        //relic up/down
+        if(gamepad2.right_bumper){ 		//Relic arm Up
+            relicservoarm.setPosition(uprelicarm);
+        }else if(gamepad2.left_bumper){ 		//Relic arm Down
+            relicservoarm.setPosition(downrelicarm);
         }
 
-        if(gamepad2.dpad_up){
+        //glyph extend
+        if(gamepad2.dpad_up){			//up
             motorVertical1.setPower(1.0);
-            motorVertical2.setPower(-1.0);
-        }else if(gamepad2.dpad_down){
+        }else if(gamepad2.dpad_down){		//down
             motorVertical1.setPower(-1.0);
-            motorVertical2.setPower(1.0);
-        }else{
+        }else{					//default
             motorVertical1.setPower(0.0);
-            motorVertical2.setPower(0.0);
         }
 
-        if(gamepad1.dpad_left){
+        //relic extend
+        if(gamepad2.dpad_left){
             motorHorizontal.setPower(1.0);
-        }else if(gamepad1.dpad_right){
+        }else if(gamepad2.dpad_right){
             motorHorizontal.setPower(-1.0);
         }else{
             motorHorizontal.setPower(0.0);
         }
 
-        telemetry.addData("Servopos Left:" , ServoposL);
-        telemetry.addData("Servopos Right: " , ServoposR);
+        //telemetry
         telemetry.addData("Speed coeff" , speedcoef);
         //telemetry.addData("Acceleration" , accel);
         telemetry.update();
