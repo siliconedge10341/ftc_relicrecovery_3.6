@@ -104,6 +104,7 @@ public class hitballblue extends LinearOpMode {
         timer  = new ElapsedTime();
 
         driveDistance = 15.0;
+
         blue = 0;
         red = 0;
 

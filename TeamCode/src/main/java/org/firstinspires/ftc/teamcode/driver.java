@@ -29,10 +29,10 @@ public class driver extends OpMode{
 
     private DcMotor motorHorizontal;
 
-    private Servo armServoLB;
-    private Servo armServoLT;
-    private Servo armServoRB;
-    private Servo armServoRT;
+    private Servo armServoTop;
+    private Servo armServoBot;
+    private Servo armServoRot;
+
     private Servo relicservohook;
     private Servo relicservoarm;
 
@@ -43,14 +43,22 @@ public class driver extends OpMode{
     double openposRB = .9;
     double openposRT = .9;
     double openrelichook = .9;
-    double downrelicarm = .9;
+    double downrelicarm = 1.0;
 
     double closeposLB = 0.65;
     double closeposLT = 0.9;
     double closeposRB = 0.35;
     double closeposRT = .1;
-    double closerelichook = .2;
+    double closerelichook = 0.0;
     double uprelicarm = .4;
+
+    double topPosOpen = 1.0;
+    double botPosOpen = 1.0;
+
+    double topPosClose = 0.0;
+    double botPosClose = 0.0;
+
+    double rotPos = 0.0;
 
     //AdafruitIMU imu;
 
@@ -63,7 +71,9 @@ public class driver extends OpMode{
 
     double speedcoef;
 
-
+    boolean changedRot = false; //Outside of loop()
+    boolean changed = false; //Outside of loop()
+    boolean changedup = false, on = false; //Outside of loop()
 
     // Servos
 
@@ -90,20 +100,18 @@ public class driver extends OpMode{
 
         motorHorizontal = hardwareMap.dcMotor.get("motor_horizontal");
 
-        armServoLB = hardwareMap.servo.get("arm_servoLB");
-        armServoLB.setPosition(openposLB);
+        armServoTop = hardwareMap.servo.get("arm_servoT");
+        armServoTop.setPosition(topPosOpen);
 
-        armServoLT = hardwareMap.servo.get("arm_servoLT");
-        armServoLT.setPosition(openposLT);
+        armServoBot = hardwareMap.servo.get("arm_servoB");
+        armServoBot.setPosition(botPosOpen);
 
-        armServoRB = hardwareMap.servo.get("arm_servoRB");
-        armServoRB.setPosition(openposRB);
+        armServoRot = hardwareMap.servo.get("arm_servoR");
+        armServoRot.setPosition(rotPos);
 
-        armServoRT = hardwareMap.servo.get("arm_servoRT");
-        armServoRT.setPosition(openposRT);
 
         relicservohook = hardwareMap.servo.get("relic_servohook");
-        relicservohook.setPosition(openrelichook);
+        relicservohook.setPosition(1.0);
 
         relicservoarm = hardwareMap.servo.get("relic_servoarm");
         relicservoarm.setPosition(uprelicarm);
@@ -152,19 +160,24 @@ public class driver extends OpMode{
         motorBL.setPower(-speedcoef * (Ch3 + Ch1 - Ch4));
 
         //Glyph open/close
-        if(gamepad1.right_trigger>.5){ 		//Glyph Close
-            armServoLB.setPosition(closeposLB);
-            armServoLT.setPosition(closeposLT);
-            armServoRB.setPosition(closeposRB);
-            armServoRT.setPosition(closeposRT);
-        }else if(gamepad1.right_bumper){ 	//Glyph Open
-            armServoLB.setPosition(openposLB);
-            armServoLT.setPosition(openposLT);
-            armServoRB.setPosition(openposRB);
-            armServoRT.setPosition(openposRT);
+        if(gamepad1.right_trigger>.5){ 		//Glyph Open
+            armServoBot.setPosition(botPosOpen);
+            armServoTop.setPosition(topPosOpen);
+        }else if(gamepad1.right_bumper){ 	//Glyph Close
+            armServoBot.setPosition(topPosClose);
+            armServoTop.setPosition(botPosClose);
         }
 
+        //Glpy mechanism rotate
+
+        if(gamepad2.x && !changedRot) {
+            if(armServoRot.getPosition() == 0) armServoRot.setPosition(1);
+            else armServoRot.setPosition(0);
+            changedRot = true;
+        } else if(!gamepad1.x) changedRot = false;
+
         //relic open/close
+
         if(gamepad2.right_trigger>.5){ 		//Relic Close
             relicservohook.setPosition(closerelichook);
         }else if(gamepad2.left_trigger>.5){ 		//Relic Open
@@ -172,11 +185,20 @@ public class driver extends OpMode{
         }
 
         //relic up/down
-        if(gamepad2.right_bumper){ 		//Relic arm Up
+
+
+
+        if(gamepad2.right_bumper && !changedup) {
+            if(relicservoarm.getPosition() == uprelicarm) relicservoarm.setPosition(downrelicarm);
+            else relicservoarm.setPosition(uprelicarm);
+            changedup = true;
+        } else if(!gamepad2.right_bumper) changedup = false;
+
+       /* if(gamepad2.left_bumper){ 		//Relic arm Up
             relicservoarm.setPosition(uprelicarm);
-        }else if(gamepad2.left_bumper){ 		//Relic arm Down
+        }else if(gamepad2.right_bumper){ 		//Relic arm Down
             relicservoarm.setPosition(downrelicarm);
-        }
+        }*/
 
         //glyph extend
         if(gamepad2.dpad_up){			//up
@@ -189,9 +211,9 @@ public class driver extends OpMode{
 
         //relic extend
         if(gamepad2.dpad_left){
-            motorHorizontal.setPower(1.0);
+            motorHorizontal.setPower(.7);
         }else if(gamepad2.dpad_right){
-            motorHorizontal.setPower(-1.0);
+            motorHorizontal.setPower(-.7);
         }else{
             motorHorizontal.setPower(0.0);
         }
@@ -213,6 +235,10 @@ public class driver extends OpMode{
     public void stop() {
 
         // set to zero so the power doesn't influence any motion or rotation in the robot
+
+    }
+
+    public void flip(){
 
     }
 

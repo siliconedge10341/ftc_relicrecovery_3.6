@@ -42,20 +42,17 @@ public class RedAuto2 extends LinearOpMode {
     private DcMotor motorBR;
     private DcMotor motorBL;
 
-    private Servo armServoL1;
-    private Servo armServoL2;
-    private Servo armServoR1;
-    private Servo armServoR2;
+    private Servo armServoTop;
+    private Servo armServoBot;
+    private Servo armServoRot;
 
-    double ServoposL = 1;
-    double ServoposL1 = 1;
-    double ServoposR = .7;
-    double ServoposR1 = .7;
+    double topPosOpen = 1.0;    //Open for arm
+    double botPosOpen = 1.0;
 
-    double closeposL1 = 0.29;
-    double closeposR1 = 0.28;
-    double closeposL2 = 0.79;
-    double closeposR2 = 0.22;
+    double topPosClose = 0.0;
+    double botPosClose = 0.0;   //Close for arm
+
+    double rotPos = 0.0;
 
     //Mecanum
     Mecanum bot = new Mecanum();
@@ -71,7 +68,6 @@ public class RedAuto2 extends LinearOpMode {
 
     //Servos
     Servo jewelHitter;
-    Servo jewelHitter2;
 
     //Timer
     ElapsedTime timer = new ElapsedTime();
@@ -79,6 +75,7 @@ public class RedAuto2 extends LinearOpMode {
     private static final Double ticks_per_inch = 19.9;
     private static final Double CORRECTION = .04;
     private static final Double THRESHOLD = 2.0;
+
     Double driveDistance;
     double red;
     double blue;
@@ -92,15 +89,14 @@ public class RedAuto2 extends LinearOpMode {
         motorBR = hardwareMap.dcMotor.get("br");
 
         //Servo
-        armServoL1 = hardwareMap.servo.get("arm_servoL1");
-        armServoL2 = hardwareMap.servo.get("arm_servoL2");
-        armServoR2 = hardwareMap.servo.get("arm_servoR2");
-        armServoR1 = hardwareMap.servo.get("arm_servoR1");
+        armServoTop = hardwareMap.servo.get("arm_servoT");
+        armServoTop.setPosition(topPosClose);
 
-        armServoL1.setPosition(.05);
-        armServoL2.setPosition(.45);    //actually r2
-        armServoR1.setPosition(.95);
-        armServoR2.setPosition(.05);
+        armServoBot = hardwareMap.servo.get("arm_servoB");
+        armServoBot.setPosition(botPosClose);
+
+        armServoRot = hardwareMap.servo.get("arm_servoR");
+        armServoRot.setPosition(rotPos);
 
         //Camera setup
         VuforiaLocalizer.Parameters parameters = new VuforiaLocalizer.Parameters();
@@ -126,8 +122,8 @@ public class RedAuto2 extends LinearOpMode {
 
         //Servo
         jewelHitter = hardwareMap.servo.get("servo_hitter");
-        jewelHitter.setPosition(0);
-        jewelHitter2 = hardwareMap.servo.get("servo_hitter2");
+        jewelHitter.setPosition(.78);
+
 
         //Timer
         timer = new ElapsedTime();
@@ -139,7 +135,6 @@ public class RedAuto2 extends LinearOpMode {
         imu.start();
         relicTrackables.activate();
 
-        jewelHitter2.setPosition(0.0);
         pauseAuto(1.0);
         //STATE ONE: MOVE FORWARD
         hitballOff();
@@ -162,12 +157,8 @@ public class RedAuto2 extends LinearOpMode {
 
         //STATE SIX: STACK BLOCK
         encoderDrive(5.0,"forward" , .27);
-
-
-        armServoL1.setPosition(.15+.2);
-        armServoL2.setPosition(.4-.2);
-        armServoR2.setPosition(.9-.2);
-        armServoR1.setPosition(.15+.2);
+        armServoBot.setPosition(botPosOpen);
+        armServoTop.setPosition(topPosOpen);
 
         encoderDrive(3.0,"backward" , .3);
         pauseAuto(1.0);
@@ -335,7 +326,7 @@ public class RedAuto2 extends LinearOpMode {
     public void hitballOff(){
         gyroTurnRight(5,"fatfuck",.3);
 
-        jewelHitter.setPosition(.75);
+        jewelHitter.setPosition(0.03);
 
         pauseAuto(1.0);
 

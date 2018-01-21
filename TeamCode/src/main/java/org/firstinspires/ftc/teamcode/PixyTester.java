@@ -1,39 +1,72 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.I2cAddr;
 import com.qualcomm.robotcore.hardware.I2cDeviceSynch;
 
-import org.firstinspires.ftc.teamcode.classes.AdafruitIMU;
-import org.firstinspires.ftc.teamcode.classes.Pixy;
-
-/**
- * Created by vatty on 9/16/2017.
- */
-
-@Autonomous(name = "pixyTester")
-public class PixyTester extends LinearOpMode{
-    I2cDeviceSynch pixy;
-
-    Pixy cam;
+import com.qualcomm.robotcore.hardware.Servo;
 
 
-    public void runOpMode(){
-        pixy = hardwareMap.i2cDeviceSynch.get("pixy");
+@Autonomous(name="PixtTester")
+public class PixyTester extends LinearOpMode {
+    I2cDeviceSynch pixyCam;
+    Servo servo_tilt;
 
-        cam = new Pixy(pixy);
+    double x, y, width, height, numObjects;
+    double xpos = 0.5;
+
+    byte[] pixyData;
+
+    @Override
+    public void runOpMode() throws InterruptedException {
+
+        pixyCam = hardwareMap.i2cDeviceSynch.get("pixy");
+
+        servo_tilt = hardwareMap.servo.get("servo_pan");
+
 
         waitForStart();
 
-        cam.engage();
+        while(opModeIsActive()){
+            pixyCam.engage();
+            pixyData = pixyCam.read(0x51, 5);
 
-        while (opModeIsActive()){
-            telemetry.addData("Data 1",cam.getX());
-            telemetry.addData("Data 2", cam.getY());
-            telemetry.addData("Data 0", cam.numobjects());
+            x = pixyData[1];
+            y = pixyData[2];
+            width = pixyData[3];
+            height = pixyData[4];
+            numObjects = pixyData[0];
+
+
+            if(numObjects>0){
+                if(x>255/2){
+                    xpos += .02;
+                }
+
+                if(xpos >= Servo.MAX_POSITION){
+                    xpos = Servo.MAX_POSITION;
+                }
+                if(xpos<=Servo.MIN_POSITION){
+                    xpos=Servo.MIN_POSITION;
+                }
+                if(xpos!=0) {
+                    servo_tilt.setPosition(xpos);
+                }
+            }
+
+            servo_tilt.setPosition(xpos);
+
+
+            telemetry.addData("num obj 0", 0xff&pixyData[0]);
+            telemetry.addData("x: 1", 0xff&pixyData[1]);
+            telemetry.addData("y: 2", 0xff&pixyData[2]);
+            telemetry.addData("width: 3", 0xff&pixyData[3]);
+            telemetry.addData("height: 4", 0xff&pixyData[4]);
+            //telemetry.addData("Length", pixyData.length);
             telemetry.update();
-
+            sleep (50);
         }
+
     }
 }
