@@ -142,12 +142,12 @@ public class RedAuto2 extends LinearOpMode {
         pauseAuto(2.0);
 
         //STATE THREE: SCAN VUMARK
-        driveDistance = encoderDriveScan(28.0,"forward_scan" , .3 , relicTemplate);
+        driveDistance = encoderDriveScan(28.0,"backward" , .26 , relicTemplate);
 
         pauseAuto(1.0);
 
         //STATE FIVE: MOVE BACK
-        gyroTurnLeft(89,"oof" , .27);
+        gyroTurnRight(89,"oof" , .27);
         pauseAuto(1.0);
         encoderDrive(driveDistance,"forward",.3);
         pauseAuto(1.0);
@@ -324,7 +324,6 @@ public class RedAuto2 extends LinearOpMode {
     }
 
     public void hitballOff(){
-        gyroTurnRight(5,"fatfuck",.3);
 
         jewelHitter.setPosition(0.03);
 
@@ -344,15 +343,15 @@ public class RedAuto2 extends LinearOpMode {
         if(blue<red){
 
             gyroTurnLeft(10,"oof",.3);
-            jewelHitter.setPosition(0.0);
+            jewelHitter.setPosition(0.78);
             pauseAuto(.5);
-            gyroTurnRight(5,"oof",.26);
+            gyroTurnRight(10,"oof",.26);
         }else{
 
             gyroTurnRight(10,"oof",.3);
-            jewelHitter.setPosition(0.0);
+            jewelHitter.setPosition(0.78);
             pauseAuto(.5);
-            gyroTurnLeft(15,"oof",.26);
+            gyroTurnLeft(10,"oof",.26);
         }
 
 

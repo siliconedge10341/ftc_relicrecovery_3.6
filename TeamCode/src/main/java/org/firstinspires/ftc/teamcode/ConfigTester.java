@@ -63,7 +63,7 @@ import org.firstinspires.ftc.robotcontroller.external.samples.HardwarePushbot;
  */
 
 @Autonomous(name="motorConfigure rrt", group="Pushbot")
-@Disabled
+
 public class ConfigTester extends LinearOpMode {
 
     /* Declare OpMode members. */

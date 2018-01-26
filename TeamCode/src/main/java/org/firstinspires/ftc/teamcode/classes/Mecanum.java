@@ -625,11 +625,11 @@ public class Mecanum{
 
         motorFR.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        motorBR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorBR.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         motorFL.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        motorBL.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        motorBL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         //
 

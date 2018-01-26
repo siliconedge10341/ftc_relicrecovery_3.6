@@ -6,6 +6,9 @@ import com.qualcomm.robotcore.hardware.I2cAddr;
 import com.qualcomm.robotcore.hardware.I2cDeviceSynch;
 
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.CRServo;
+
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics;
 
 
 @Autonomous(name="PixtTester")
@@ -14,9 +17,14 @@ public class PixyTester extends LinearOpMode {
     Servo servo_tilt;
 
     double x, y, width, height, numObjects;
+    double gainx = -.0005;
     double xpos = 0.5;
 
     byte[] pixyData;
+
+    DescriptiveStatistics stat;
+
+
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -24,6 +32,9 @@ public class PixyTester extends LinearOpMode {
         pixyCam = hardwareMap.i2cDeviceSynch.get("pixy");
 
         servo_tilt = hardwareMap.servo.get("servo_pan");
+        servo_tilt.setPosition(.14);
+
+        stat=new DescriptiveStatistics();
 
 
         waitForStart();
@@ -38,10 +49,14 @@ public class PixyTester extends LinearOpMode {
             height = pixyData[4];
             numObjects = pixyData[0];
 
+            servo_tilt.setPosition(xpos);
+
 
             if(numObjects>0){
-                if(x>255/2){
-                    xpos += .02;
+                stat.addValue(x);
+                xpos += x*gainx;
+                if(x>255/2 + 3){
+                    xpos += .01;
                 }
 
                 if(xpos >= Servo.MAX_POSITION){
@@ -55,7 +70,8 @@ public class PixyTester extends LinearOpMode {
                 }
             }
 
-            servo_tilt.setPosition(xpos);
+            servo_tilt.setPosition(1-xpos);
+
 
 
             telemetry.addData("num obj 0", 0xff&pixyData[0]);
@@ -63,10 +79,13 @@ public class PixyTester extends LinearOpMode {
             telemetry.addData("y: 2", 0xff&pixyData[2]);
             telemetry.addData("width: 3", 0xff&pixyData[3]);
             telemetry.addData("height: 4", 0xff&pixyData[4]);
+            telemetry.addData("stats" ,stat.toString());
             //telemetry.addData("Length", pixyData.length);
             telemetry.update();
             sleep (50);
         }
 
     }
+
+
 }

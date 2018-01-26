@@ -14,7 +14,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.classes.AdafruitIMU;
 
 
-@TeleOp(name = "MecanumDriveGood", group = "Drive")
+@TeleOp(name = "yu", group = "Drive")
 public class driver extends OpMode{
     // instance variables
     // private variables
@@ -45,10 +45,8 @@ public class driver extends OpMode{
     double openrelichook = .9;
     double downrelicarm = 1.0;
 
-    double closeposLB = 0.65;
-    double closeposLT = 0.9;
-    double closeposRB = 0.35;
-    double closeposRT = .1;
+    double armServoRotPos = 0.0;
+
     double closerelichook = 0.0;
     double uprelicarm = .4;
 
@@ -139,9 +137,7 @@ public class driver extends OpMode{
         //accel = Math.sqrt(imu.getAccelX()*imu.getAccelX() + imu.getAccelZ()*imu.getAccelZ() + imu.getAccelY()*imu.getAccelY());
 
 
-        if (gamepad1.left_trigger>.5){
-            speedcoef = 1.0;
-        }else if(gamepad1.right_trigger >.5){
+        if(gamepad1.left_trigger >.5){
             speedcoef = .3;
         }
         else{
@@ -151,7 +147,7 @@ public class driver extends OpMode{
         //meccanum drive
         Ch1 = -gamepad1.right_stick_x;
         Ch3 = gamepad1.left_stick_y;
-        Ch4 = gamepad1.left_stick_x;
+        Ch4 = -gamepad1.left_stick_x;
 
         motorFR.setPower( -speedcoef* -(Ch3 - Ch1 - Ch4));
         motorFL.setPower( -speedcoef * (Ch3 + Ch1 + Ch4));
@@ -160,21 +156,26 @@ public class driver extends OpMode{
         motorBL.setPower(-speedcoef * (Ch3 + Ch1 - Ch4));
 
         //Glyph open/close
-        if(gamepad1.right_trigger>.5){ 		//Glyph Open
-            armServoBot.setPosition(botPosOpen);
-            armServoTop.setPosition(topPosOpen);
-        }else if(gamepad1.right_bumper){ 	//Glyph Close
-            armServoBot.setPosition(topPosClose);
-            armServoTop.setPosition(botPosClose);
+        if(gamepad1.right_trigger>.5){ 		//Glyph Close
+            if(armServoRotPos>.7) {
+                armServoBot.setPosition(botPosClose);
+            }else if(armServoRotPos < .3) {
+                armServoTop.setPosition(topPosClose);
+            }
+        }else if(gamepad1.right_bumper){ 	//Glyph Open
+            armServoBot.setPosition(topPosOpen);
+            armServoTop.setPosition(botPosOpen);
         }
 
-        //Glpy mechanism rotate
+        //Glyph mechanism rotate
 
-        if(gamepad2.x && !changedRot) {
-            if(armServoRot.getPosition() == 0) armServoRot.setPosition(1);
-            else armServoRot.setPosition(0);
-            changedRot = true;
-        } else if(!gamepad1.x) changedRot = false;
+        if(gamepad2.right_stick_x>.1){
+            armServoRotPos += .01;
+        }else if(gamepad2.right_stick_x < -.1){
+            armServoRotPos -= .01;
+        }
+
+        armServoRot.setPosition(armServoRotPos);
 
         //relic open/close
 
